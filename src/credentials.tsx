@@ -3470,6 +3470,7 @@ function Prompt({
         <Text>{selectedSource.displayName} authorization</Text>
         {sourceState.authUrl ? (
           <OAuthAuthorizationLink
+            authProvider={selectedSource.authProvider}
             copiedToClipboard={Boolean(sourceState.copiedAuthUrlToClipboard)}
             url={sourceState.authUrl}
           />
@@ -3790,9 +3791,11 @@ function SourceConnectionStatus({
 }
 
 function OAuthAuthorizationLink({
+  authProvider,
   copiedToClipboard,
   url,
 }: {
+  authProvider?: AuthProviderId;
   copiedToClipboard: boolean;
   url: string;
 }) {
@@ -3804,15 +3807,31 @@ function OAuthAuthorizationLink({
         </Text>
       </Text>
       <Text color={copiedToClipboard ? "green" : "gray"}>
-        {copiedToClipboard
-          ? "Full URL copied to clipboard. It is also shown below."
-          : "Copy the full raw URL below if the link is not clickable."}
-      </Text>
-      <Text color="gray" wrap="wrap">
-        {url}
+        {getOAuthAuthorizationStatusText({
+          authProvider,
+          copiedToClipboard,
+        })}
       </Text>
     </Box>
   );
+}
+
+export function getOAuthAuthorizationStatusText({
+  authProvider,
+  copiedToClipboard,
+}: {
+  authProvider?: AuthProviderId;
+  copiedToClipboard: boolean;
+}): string {
+  if (copiedToClipboard) {
+    return "Full URL copied to clipboard. Use the link above if your terminal supports it.";
+  }
+
+  const authCommand = authProvider
+    ? `openwiki auth ${authProvider}`
+    : "openwiki auth <provider>";
+
+  return `Use the terminal link above. If it is not clickable, cancel and run ${authCommand} in a plain terminal.`;
 }
 
 function OAuthLoginPrompt({
